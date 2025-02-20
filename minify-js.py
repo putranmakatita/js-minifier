@@ -1,13 +1,17 @@
 # Author: Putra Nurhuda Makatita
+# Date: 20 Februari 2025
 # Easy to use minifier
 import os
 import sys
 import subprocess
 from pathlib import Path
 
-def minify_file(input_file, output_dir, uglify_path):
+def minify_file(input_file, output_dir, uglify_path, use_min):
     filename = Path(input_file).stem
-    output_file = output_dir / f"{filename}.min.js"
+    if use_min:
+        output_file = output_dir / f"{filename}.min.js"
+    else:
+        output_file = output_dir / f"{filename}.js"
 
     print(f"Sedang meminify '{input_file}'...")
     try:
@@ -27,14 +31,14 @@ def minify_file(input_file, output_dir, uglify_path):
     except subprocess.CalledProcessError:
         print(f"Gagal meminify: {input_file}. Pastikan uglifyjs terinstal dan valid.")
 
-def process_path(input_path, output_dir, uglify_path):
+def process_path(input_path, output_dir, uglify_path, use_min):
     output_dir.mkdir(exist_ok=True, parents=True)
 
     if input_path.is_file() and input_path.suffix == ".js":
-        minify_file(str(input_path), output_dir, uglify_path)
+        minify_file(str(input_path), output_dir, uglify_path, use_min)
     elif input_path.is_dir():
         for js_file in input_path.rglob("*.js"):
-            minify_file(str(js_file), output_dir, uglify_path)
+            minify_file(str(js_file), output_dir, uglify_path, use_min)
     else:
         print(f"Path '{input_path}' tidak valid. Berikan file .js atau direktori yang benar.")
 
@@ -53,12 +57,15 @@ def main():
     if len(sys.argv) < 3:
         input_path = input("Masukan path ke file JS-nya atau direktori: ")
         output_dir = input("Masukan path untuk output (default: ./MinJS): ") or "MinJS"
+        use_min = input("Gunakan min pada nama file? (y/n): ") or "n"
     else:
         input_path = sys.argv[1]
         output_dir = sys.argv[2] if len(sys.argv) >= 3 else "MinJS"
+        use_min = sys.argv[3] or "n"
 
     input_path = Path(input_path)
     output_dir = Path(output_dir)
+    use_min = use_min.lower() == "y"
 
     if not input_path.exists():
         print(f"Path '{input_path}' tidak ditemukan. Periksa kembali.")
@@ -66,7 +73,7 @@ def main():
 
     uglify_path = find_uglifyjs()
     print(f"Sedang memproses '{input_path}'...")
-    process_path(input_path, output_dir, uglify_path)
+    process_path(input_path, output_dir, uglify_path, use_min)
     print("Semua proses selesai.")
 
 if __name__ == "__main__":
